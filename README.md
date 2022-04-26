@@ -54,6 +54,6 @@ The controller exposes a simple REST Endpoint that:
 Example:
 
 ```bash
-curl -X GET http://0.0.0.0:8080
-true
+curl -X GET --head http://0.0.0.0:8080 
+HTTP/1.1 200 OK
 ```
