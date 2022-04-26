@@ -1,11 +1,13 @@
 <h1>
-    <img src="assets/img/blocks.png" align="left" width="150" style="margin-right: 20px"/>
+    <img src="assets/img/blocks.png" align="left" width="200" style="margin-right: 20px"/>
     Cosmos-rpc-sync-controller
 </h1> 
 
 Simple controller written in python to check if an rpc node is fetching blocks
 
 ## Run 
+
+### Locally
 
 Run locally:
 
@@ -16,7 +18,7 @@ make start
 
 ![usage](assets/img/terminal.png)
 
-## Docker 
+### Docker 
 
 Build the image:
 
@@ -40,4 +42,18 @@ docker run \
     -e NEW_BLOCK_THRESHOLD=30 \
     --name sync-controller \
     sync-controller:$(TAG) 
+```
+
+## Usage
+
+The controller exposes a simple REST Endpoint that:
+
+- Responds with a `200` status code if the rpc is fetching blocks
+- Responds with a `503` status code if the rpc is not fetching blocks
+
+Example:
+
+```bash
+curl -X GET http://0.0.0.0:8080
+true
 ```
