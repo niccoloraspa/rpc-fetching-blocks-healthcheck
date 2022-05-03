@@ -13,6 +13,9 @@ DEFAULT_LOG_LEVEL = "INFO"
 # RPC_NODE: url of the rpc nodes to check if it's fetching blocks
 RPC_NODE = os.environ['RPC_NODE']
 
+# SLACK_WEBHOOK: slack incoming webhook to send alerts
+SLACK_WEBHOOK = os.getenv('SLACK_WEBHOOK')
+
 # CHECK_INTERVAL: How often should I check
 CHECK_INTERVAL = os.getenv('CHECK_INTERVAL', DEFAULT_CHECK_INTERVAL)
 
@@ -32,9 +35,10 @@ logging.basicConfig(format='%(levelname)s: %(asctime)s - %(message)s', level=LOG
 app = FastAPI()
 
 controller = TimeController(
-    rpc=RPC_NODE,
-    check_interval=CHECK_INTERVAL,
+    rpc = RPC_NODE,
+    check_interval = CHECK_INTERVAL,
     new_block_threshold = NEW_BLOCK_THRESHOLD,
+    slack_webhook = SLACK_WEBHOOK
 )
 
 @app.on_event('startup')
@@ -52,7 +56,7 @@ async def app_startup():
     asyncio.create_task(controller.loop())
 
 @app.get("/")
-def root():
+def healthcheck():
     if not controller.in_sync:
         raise HTTPException(status_code=503, detail="Node not in sync")
     return controller.in_sync

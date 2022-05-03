@@ -16,6 +16,7 @@ python-dotenv==0.20.0
 PyYAML==6.0
 requests==2.27.1
 six==1.16.0
+slack-sdk==3.15.2
 sniffio==1.2.0
 starlette==0.17.1
 typing_extensions==4.2.0

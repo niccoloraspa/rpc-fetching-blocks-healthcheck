@@ -3,7 +3,7 @@
     Cosmos-rpc-sync-controller
 </h1> 
 
-Simple controller written in python to check if an rpc node is fetching blocks
+Simple controller written in python that serves an healthcheck to determine if an rpc node is synced and fetching blocks.
 
 ## Run 
 
@@ -56,4 +56,10 @@ Example:
 ```bash
 curl -X GET --head http://0.0.0.0:8080 
 HTTP/1.1 200 OK
+```
+
+## Alerts
+
+```bash
+
 ```
