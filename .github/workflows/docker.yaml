@@ -10,7 +10,7 @@ on:
 
 env:
   DOCKER_REPOSITORY: osmolabs
-  DOCKER_IMAGE: cosmos-rpc-sync-controller
+  DOCKER_IMAGE: rpc-fetching-blocks-healthcheck
 
 jobs:
   docker:
