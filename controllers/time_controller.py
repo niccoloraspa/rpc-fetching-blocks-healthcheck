@@ -48,7 +48,7 @@ class TimeController():
             
             if self.catching_up:
                 self.in_sync = False
-                logging.info("🚫 {rpc} not in sync [🏃 catching up ]")
+                logging.info("🚫 {rpc} not in sync [🏃 catching up ]".format(rpc=self.rpc))
             else:
                 dt_now = datetime.now(timezone.utc)
                 dt_last_block = parser.parse(self.last_block.time)
