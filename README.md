@@ -58,8 +58,10 @@ curl -X GET --head http://0.0.0.0:8080
 HTTP/1.1 200 OK
 ```
 
-## Alerts
+## Alarms
+
+The healthcheck can be configured to send alarms via slack webhooks:
 
 ```bash
-
+export SLACK_WEBHOOK="https://hooks.slack.com/services/T..."
 ```
