@@ -9,16 +9,19 @@ build:
 	docker build -t rpc-sync-controller:$(TAG) .
 
 run:
-	docker run -p 8080:8080 -e RPC_NODE=$(RPC_NODE) -e CHECK_INTERVAL=$(CHECK_INTERVAL) --name rpc-sync-controller rpc-sync-controller:$(TAG) 
+	docker run -ti -p 8080:8080 -e RPC_NODE=$(RPC_NODE) -e CHECK_INTERVAL=$(CHECK_INTERVAL) --name controller rpc-sync-controller:$(TAG) 
 
 rund:
-	docker run -d -p 8080:8080 -e RPC_NODE=$(RPC_NODE) -e CHECK_INTERVAL=$(CHECK_INTERVAL) --name rpc-sync-controller rpc-sync-controller:$(TAG) 
+	docker run -d -p 8080:8080 -e RPC_NODE=$(RPC_NODE) -e CHECK_INTERVAL=$(CHECK_INTERVAL) --name controller rpc-sync-controller:$(TAG) 
+
+alarm:
+	docker run -ti -p 8080:8080 -e SLACK_WEBHOOK=${SLACK_WEBHOOK} -e RPC_NODE=$(RPC_NODE) -e CHECK_INTERVAL=$(CHECK_INTERVAL) --name controller rpc-sync-controller:$(TAG) 
 
 exec:
-	docker run -p 8080:8080 -e RPC_NODE=$(RPC_NODE) -e CHECK_INTERVAL=$(CHECK_INTERVAL) --name rpc-sync-controller -ti --entrypoint bash rpc-sync-controller:$(TAG) 
+	docker run -ti -p 8080:8080 -e RPC_NODE=$(RPC_NODE) -e CHECK_INTERVAL=$(CHECK_INTERVAL) --name controller --entrypoint bash rpc-sync-controller:$(TAG) 
 
 stop: 
-	docker stop -t 0 rpc-sync-controller
+	docker stop -t 0 controller
 
 remove: stop
-	docker rm rpc-sync-controller
+	docker rm controller
