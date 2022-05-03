@@ -1,6 +1,6 @@
 <h1>
     <img src="assets/img/blocks.png" align="left" width="200" style="margin-right: 20px"/>
-    Cosmos-rpc-sync-controller
+    Block fetch healthcheck
 </h1> 
 
 Simple controller written in python that serves an healthcheck to determine if an rpc node is synced and fetching blocks.
