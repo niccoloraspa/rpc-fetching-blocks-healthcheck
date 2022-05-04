@@ -127,7 +127,7 @@ class TimeController():
             
             if self.catching_up:
                 self.update_sync_state(False)
-                logging.info("🚫 {rpc} not in sync [🏃 catching up ]".format(rpc=self.rpc))
+                logging.info("🚫 {rpc} not in sync [🏃 catching up]".format(rpc=self.rpc))
 
             else:
                 dt_now = datetime.now(timezone.utc)
