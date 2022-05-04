@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from dateutil import parser
 from slack_sdk.webhook import WebhookClient
 from collections import namedtuple
-from .common import call_endpoint, parse_sync_info
+from .common import call_endpoint, parse_sync_info, parse_node_info
 
 Block = namedtuple('Block', 'height time hash')
 
@@ -17,12 +17,18 @@ class TimeController():
         self.check_interval = int(check_interval)
         self.new_block_threshold = int(new_block_threshold)
 
+        self.moniker, self.node_id, self.network = self.get_node_info()
         self.in_sync = None
         self.last_block = None
         self.cathing_up = None
 
         self.slack_webhook = slack_webhook
     
+    def get_node_info(self):
+        url = urllib.parse.urljoin(self.rpc, "/status")
+        response = call_endpoint(url)     
+        return parse_node_info(response.json())   
+
     def update_sync_info(self):
         url = urllib.parse.urljoin(self.rpc, "/status")
         response = call_endpoint(url)
@@ -59,7 +65,7 @@ class TimeController():
 
         if not self.in_sync:
             response = webhook.send(
-                text="text",
+                text="🚨 alarm",
                 blocks=[
                     {
                         "type": "section",
@@ -71,21 +77,27 @@ class TimeController():
                     },
                     {
                         "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": "*Node*:\n{rpc}".format(rpc=self.rpc)
-                        }
+                        "fields": [
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Moniker*\n{}".format(self.moniker)
+                            },
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Network*\n{}".format(self.network)
+                            }
+                        ]
                     },
                     {
                         "type": "section",
                         "fields": [
                             {
                                 "type": "mrkdwn",
-                                "text": "*Last Block Height:*\n{height}".format(height=self.last_block.height)
+                                "text": "*Last Block Height*\n{height}".format(height=self.last_block.height)
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": "*Last Block Time:*\n{time}".format(time=self.last_block.time)
+                                "text": "*Last Block Time*\n{time}".format(time=self.last_block.time)
                             }
                         ]
                     },
@@ -96,7 +108,7 @@ class TimeController():
             )
         else:
             response = webhook.send(
-                text="fallback",
+                text="🚨 alarm",
                 blocks=[
                     {
                         "type": "section",
@@ -108,10 +120,16 @@ class TimeController():
                     },
                     {
                         "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": "*Node*:\n{rpc}".format(rpc=self.rpc)
-                        }
+                        "fields": [
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Moniker*\n{}".format(self.moniker)
+                            },
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Network*\n{}".format(self.network)
+                            }
+                        ]
                     },
                     {
                         "type": "divider"

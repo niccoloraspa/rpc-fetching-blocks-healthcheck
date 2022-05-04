@@ -27,3 +27,11 @@ def parse_sync_info(response):
     hash = response["result"]["sync_info"]["latest_block_hash"]
 
     return catching_up, Block(int(height), time, hash)
+
+def parse_node_info(response):
+
+    moniker = response["result"]["node_info"]["moniker"]
+    node_id = response["result"]["node_info"]["id"]
+    network = response["result"]["node_info"]["network"]
+
+    return moniker, node_id, network
