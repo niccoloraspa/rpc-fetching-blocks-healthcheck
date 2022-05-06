@@ -1,7 +1,7 @@
 import urllib 
 import logging
 import asyncio
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from dateutil import parser
 from slack_sdk.webhook import WebhookClient
@@ -18,18 +18,37 @@ class TimeController():
         self.new_block_threshold = int(new_block_threshold)
 
         self.moniker, self.node_id, self.network = self.get_node_info()
+
         self.in_sync = None
         self.last_block = None
         self.cathing_up = None
 
+        self.is_epoch = False
+        self.epoch_block = None
+        self.dt_last_epoch = parser.parse("2022-05-05T17:16:09.898160996Z") # hardcoded for quick testing
+        
         self.slack_webhook = slack_webhook
     
+    def check_epoch_start(self):
+
+        dt_last_block = parser.parse(self.last_block.time)
+        dt_current_epoch_start = self.dt_last_epoch + timedelta(days=1)
+
+        if dt_last_block >= dt_current_epoch_start:
+            self.is_epoch = True
+            self.dt_last_epoch = dt_current_epoch_start
+            self.epoch_block = self.last_block
+    
+    def check_epoch_over(self):
+        if self.is_epoch and (self.last_block.height > self.epoch_block.height):
+            self.is_epoch = False
+
     def get_node_info(self):
         url = urllib.parse.urljoin(self.rpc, "/status")
         response = call_endpoint(url)     
         return parse_node_info(response.json())   
 
-    def update_sync_info(self):
+    def get_sync_info(self):
         url = urllib.parse.urljoin(self.rpc, "/status")
         response = call_endpoint(url)
 
@@ -55,6 +74,37 @@ class TimeController():
             self.in_sync = new_state
             self.send_alarm()
 
+    async def loop(self):
+
+        while True:
+
+            self.get_sync_info()
+            self.check_epoch_over()
+            
+            if self.catching_up:
+                self.update_sync_state(False)
+                logging.info("🚫 {rpc} not in sync [🏃 catching up]".format(rpc=self.rpc))
+            else:
+                dt_now = datetime.now(timezone.utc)
+                dt_last_block = parser.parse(self.last_block.time)
+                delta_seconds = (dt_now - dt_last_block).total_seconds()
+                
+                # Check epoch
+                self.check_epoch_start()
+
+                if self.is_epoch:
+                    print("EPOCH!")
+                    continue
+            
+                # Update sync state
+                self.update_sync_state(delta_seconds <= self.new_block_threshold)
+
+                if self.in_sync:
+                    logging.info("✅ {rpc} in sync [ 🕒 {s:.3f}(s) since block {b} ]".format(rpc=self.rpc, s=delta_seconds, b=self.last_block.height))
+                else:
+                    logging.error("🚫 {rpc} not in sync [ 🕒 {s:.3f}(s) since block {b} ]".format(rpc=self.rpc, s=delta_seconds, b=self.last_block.height))
+
+            await asyncio.sleep(self.check_interval)
 
     def send_alarm(self):
 
@@ -137,27 +187,3 @@ class TimeController():
                 ]
             )
             return response.status_code
-
-
-    async def loop(self):
-        while True:
-            self.update_sync_info()
-            
-            if self.catching_up:
-                self.update_sync_state(False)
-                logging.info("🚫 {rpc} not in sync [🏃 catching up]".format(rpc=self.rpc))
-
-            else:
-                dt_now = datetime.now(timezone.utc)
-                dt_last_block = parser.parse(self.last_block.time)
-                delta_seconds = (dt_now - dt_last_block).total_seconds()
-
-                # Update sync state
-                self.update_sync_state(delta_seconds <= self.new_block_threshold)
-
-                if self.in_sync:
-                    logging.info("✅ {rpc} in sync [ 🕒 {s:.3f}(s) since block {b} ]".format(rpc=self.rpc, s=delta_seconds, b=self.last_block.height))
-                else:
-                    logging.error("🚫 {rpc} not in sync [ 🕒 {s:.3f}(s) since block {b} ]".format(rpc=self.rpc, s=delta_seconds, b=self.last_block.height))
-
-            await asyncio.sleep(self.check_interval)
