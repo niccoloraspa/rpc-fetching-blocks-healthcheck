@@ -1,8 +1,6 @@
 name: docker
 
-on:
-  push:
-    branches: [ "*" ]
+on: [push, pull_request]
 
 env:
   DOCKER_REPOSITORY: osmolabs
